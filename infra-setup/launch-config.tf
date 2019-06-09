@@ -2,12 +2,12 @@
   
   #launch configuration
   
-  resource "aws_launch_configuration" "media_lc" {
-    name_prefix          = "media_lc-"
+  resource "aws_launch_configuration" "buildit_lc" {
+    name_prefix          = "buildit_lc-"
     image_id             = "${aws_ami_from_instance.buildit_golden.id}"
     instance_type        = "t2.micro"
-    security_groups      = ["${aws_security_group.media_private_sg.id}"]
-    key_name             = "${aws_key_pair.media_auth.id}"
+    security_groups      = ["${aws_security_group.main_dev_sg.id}"]
+    key_name             = "${aws_key_pair.mykey.id}"
   
     lifecycle {
       create_before_destroy = true
@@ -20,25 +20,25 @@
   # byte_length = 8
   #}
   
-  resource "aws_autoscaling_group" "media_asg" {
-    name                      = "asg-${aws_launch_configuration.media_lc.id}"
-    max_size                  = "${var.asg_max}"
-    min_size                  = "${var.asg_min}"
-    health_check_grace_period = "${var.asg_grace}"
-    health_check_type         = "${var.asg_hct}"
-    desired_capacity          = "${var.asg_cap}"
+  resource "aws_autoscaling_group" "buildit_asg" {
+    name                      = "asg-${aws_launch_configuration.buildit_lc.id}"
+    max_size                  = "3"
+    min_size                  = "2"
+    health_check_grace_period = "300"
+    health_check_type         = "EC2"
+    desired_capacity          = "2"
     force_delete              = true
-    load_balancers            = ["${aws_elb.media_elb.id}"]
+    load_balancers            = ["${aws_elb.buildit_elb.id}"]
   
-    vpc_zone_identifier = ["${aws_subnet.media_private1_subnet.id}",
-      "${aws_subnet.media_private2_subnet.id}",
+    vpc_zone_identifier = ["${aws_subnet.main-public-1.id}",
+      "${aws_subnet.main-public-2.id}",
     ]
   
-    launch_configuration = "${aws_launch_configuration.media_lc.name}"
+    launch_configuration = "${aws_launch_configuration.buildit_lc.name}"
   
     tag {
       key                 = "Name"
-      value               = "media_asg-instance"
+      value               = "buildit_asg-instance"
       propagate_at_launch = true
     }
   
@@ -47,4 +47,5 @@
     }
   }
   
+
 

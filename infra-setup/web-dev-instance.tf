@@ -6,15 +6,21 @@ resource "aws_instance" "buildit_dev_node" {
     instance_type = "t2.micro"
     ami           = "${lookup(var.AMIS, var.AWS_REGION)}"
     key_name = "${aws_key_pair.mykey.key_name}"
-    
+    vpc_security_group_ids = ["${aws_security_group.main_dev_sg.id}"]
+    subnet_id              = "${aws_subnet.main-public-1.id}"   
 
   provisioner "local-exec" {
     command = <<EOD
-    apt-get install curl python-software-properties
+    sudo -i
+   sudo   apt-get install curl python-software-properties -y
     curl -sL https://deb.nodesource.com/setup_10.x | sudo -E bash -
-    apt-get install nodejs
+   sudo apt-get install nodejs -y
     node --version
     npm --version
+    git clone https://github.com/buildit/devops-test.git
+    cd devops-test
+    npm install && npm start &
+
 EOD
 
   }
